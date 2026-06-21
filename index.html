@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FiveM Minigame - With Sound Effects</title>
+    <title>FiveM Minigame - Hardcore Lag & Warp</title>
     <style>
         body {
             background-color: #111;
@@ -74,7 +74,8 @@
             font-size: 18px;
             font-weight: bold;
         }
-        .status-bar .score { color: #2778ff; font-size: 22px; }
+        .status-bar .score { color: #2778ff;
+            font-size: 22px; }
 
         .circle-wrapper {
             position: relative;
@@ -83,7 +84,7 @@
             margin: 0 auto;
         }
         svg {
-            transform: rotate(-90deg); 
+            transform: rotate(-90deg);
             width: 100%;
             height: 100%;
             overflow: visible;
@@ -91,12 +92,12 @@
         .track {
             fill: none;
             stroke: #34363d; 
-            stroke-width: 20;
+            stroke-width: 10; /* ปรับให้เส้นเล็กลง */
         }
         .target-zone {
             fill: none;
             stroke: #2778ff; 
-            stroke-width: 20;
+            stroke-width: 10; /* ปรับให้เส้นเล็กลง */
             stroke-linecap: butt;
             transform-origin: 100px 100px; 
         }
@@ -109,10 +110,10 @@
         }
         .pointer {
             position: absolute;
-            top: 4px; 
+            top: 10px; 
             left: 50%;
-            width: 5px;
-            height: 32px; 
+            width: 4px;
+            height: 26px; 
             background-color: #ff3b30;
             transform: translateX(-50%);
             border-radius: 2px;
@@ -172,29 +173,24 @@
     </div>
 
     <script>
-        // --- ระบบเสียงสังเคราะห์ (Web Audio API) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             if (type === 'success') {
-                // เสียง "ติ๊ง!" (โดนเป้า)
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // โน้ต A5
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
                 oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
                 gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.15);
             } else if (type === 'fail') {
-                // เสียง "ออดด!" (พลาด)
                 oscillator.type = 'sawtooth';
                 oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
                 oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
@@ -203,11 +199,10 @@
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.3);
             } else if (type === 'win') {
-                // เสียงตอนชนะ
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
-                oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2); // A5
+                oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
                 gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
                 oscillator.start();
@@ -218,9 +213,23 @@
         // --- ระบบเกม ---
         const keys = ['W', 'A', 'S', 'D'];
         const totalRounds = 10; 
-
         const timePerRevolution = 1100; 
         const hitBuffer = 8; 
+
+        // --- ตัวแปรสำหรับระบบกระตุก และ วาร์ป ---
+        let willLag = false;
+        let lagTriggerAngle = 0;
+        let lagDuration = 0;
+        let isLagging = false;
+        let lagStartTime = 0;
+        let totalLagOffset = 0;
+        let hasLagged = false;
+
+        let willWarp = false;
+        let warpTriggerAngle = 0;
+        let warpAmount = 0;
+        let hasWarped = false;
+        // ------------------------------------------
 
         let score = 0;
         let isPlaying = false;
@@ -245,9 +254,7 @@
         const alertText = document.getElementById('alert-text');
 
         function startGame() {
-            // อนุญาตให้เบราว์เซอร์เล่นเสียงได้
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             overlay.style.display = 'none';
             score = 0;
             scoreText.textContent = score;
@@ -259,7 +266,7 @@
 
         function startRound() {
             if (score >= totalRounds) {
-                playSound('win'); // เล่นเสียงชนะ
+                playSound('win');
                 endGame(true, "ติดตั้งสำเร็จ!");
                 return;
             }
@@ -267,9 +274,9 @@
             currentTargetKey = keys[Math.floor(Math.random() * keys.length)];
             centerKeyEl.textContent = currentTargetKey;
 
-            const targetWidthDegrees = Math.floor(Math.random() * 15) + 40; 
-            const minStartAngle = 120; 
-            const maxStartAngle = 360 - targetWidthDegrees - 15; 
+            const targetWidthDegrees = Math.floor(Math.random() * 15) + 30; // ปรับเป้าให้แคบลงนิดนึงเพื่อความท้าทาย
+            const minStartAngle = 140; 
+            const maxStartAngle = 360 - targetWidthDegrees - 15;
 
             targetStartAngle = Math.floor(Math.random() * (maxStartAngle - minStartAngle)) + minStartAngle;
             targetEndAngle = targetStartAngle + targetWidthDegrees;
@@ -278,6 +285,29 @@
             targetEl.style.strokeDasharray = `${targetLength} ${circumference}`;
             targetEl.style.strokeDashoffset = `0`;
             targetEl.style.transform = `rotate(${targetStartAngle}deg)`;
+
+            // --- สุ่มระบบหน่วง (Lag) ---
+            willLag = Math.random() < 0.6; // โอกาสกระตุก 60%
+            if (willLag) {
+                lagTriggerAngle = Math.floor(Math.random() * (targetStartAngle - 60)) + 20;
+                lagDuration = Math.floor(Math.random() * 300) + 150; // กระตุกนานขึ้น 150-450ms
+            }
+            
+            // --- สุ่มระบบวาร์ป (Warp) ---
+            willWarp = Math.random() < 0.4; // โอกาสวาร์ป 40% (อาจจะเกิดพร้อมกระตุกได้)
+            if (willWarp) {
+                warpTriggerAngle = Math.floor(Math.random() * (targetStartAngle - 80)) + 40;
+                // คำนวณไม่ให้วาร์ปเลยเส้นชัย
+                const maxWarp = targetStartAngle - warpTriggerAngle - 5;
+                warpAmount = Math.min(Math.floor(Math.random() * 40) + 25, maxWarp); 
+                if (warpAmount < 15) willWarp = false; // ถ้าระยะวาร์ปสั้นไปให้ยกเลิก
+            }
+
+            isLagging = false;
+            totalLagOffset = 0;
+            hasLagged = false;
+            hasWarped = false;
+            // -----------------------------
 
             currentAngle = 0;
             pointerEl.style.transform = `rotate(0deg)`;
@@ -293,13 +323,49 @@
         function update(currentTime) {
             if (!isPlaying) return;
 
-            const elapsedTime = currentTime - startTime;
+            // --- จัดการสถานะการหน่วง ---
+            if (isLagging) {
+                if (currentTime - lagStartTime >= lagDuration) {
+                    isLagging = false;
+                    // ชดเชยเวลาแค่ 70% ทำให้ตอนหายกระตุก เข็มจะ "วาร์ปกระโดด" ไปข้างหน้านิดนึง (Stutter effect)
+                    totalLagOffset += (currentTime - lagStartTime) * 0.7; 
+                    hasLagged = true;
+                } else {
+                    animationFrame = requestAnimationFrame(update);
+                    return; 
+                }
+            }
+
+            let elapsedTime = currentTime - startTime - totalLagOffset;
             currentAngle = (elapsedTime / timePerRevolution) * 360;
+
+            // --- เช็คการวาร์ปข้าม (Teleport) ---
+            if (willWarp && !hasWarped && currentAngle >= warpTriggerAngle) {
+                hasWarped = true;
+                // ลด Offset ลง เพื่อให้เวลาจำลองพุ่งไปข้างหน้าทันที = วาร์ป
+                const warpTimeSkip = (warpAmount / 360) * timePerRevolution;
+                totalLagOffset -= warpTimeSkip; 
+                
+                // คำนวณองศาใหม่ทันทีหลังวาร์ป
+                elapsedTime = currentTime - startTime - totalLagOffset;
+                currentAngle = (elapsedTime / timePerRevolution) * 360;
+            }
+
+            // --- เช็คว่าถึงจุดที่ต้องกระตุกหรือยัง ---
+            if (willLag && !hasLagged && !isLagging && currentAngle >= lagTriggerAngle) {
+                isLagging = true;
+                lagStartTime = currentTime;
+                currentAngle = lagTriggerAngle; // ล็อคเข็มไว้
+                pointerEl.style.transform = `rotate(${currentAngle}deg)`;
+                animationFrame = requestAnimationFrame(update);
+                return;
+            }
+            // -------------------------
 
             if (currentAngle >= 360) {
                 currentAngle = 360;
                 pointerEl.style.transform = `rotate(360deg)`;
-                playSound('fail'); // เล่นเสียงพลาด
+                playSound('fail'); 
                 handleFail("พลาด! หมดเวลา");
                 return;
             }
@@ -311,7 +377,6 @@
         document.addEventListener('keydown', (e) => {
             if (!isPlaying) return;
             
-            // ระบบแปลคีย์ไทย
             const thaiToEngMap = {
                 'ไ': 'W', 'ฟ': 'A', 'ห': 'S', 'ก': 'D',
                 '"': 'W', 'ฤ': 'A', 'ฆ': 'S', 'ฏ': 'D' 
@@ -330,7 +395,14 @@
             cancelAnimationFrame(animationFrame);
 
             const exactClickTime = performance.now();
-            currentAngle = ((exactClickTime - startTime) / timePerRevolution) * 360;
+            let finalTime = exactClickTime - startTime - totalLagOffset;
+            
+            // ถ้ากดตอนที่เข็มกำลังหน่วงอยู่พอดี
+            if (isLagging) {
+                finalTime -= (exactClickTime - lagStartTime);
+            }
+
+            currentAngle = (finalTime / timePerRevolution) * 360;
             if (currentAngle > 360) currentAngle = 360;
 
             pointerEl.style.transform = `rotate(${currentAngle}deg)`;
@@ -339,7 +411,7 @@
             const isCorrectKey = pressedKey === currentTargetKey;
 
             if (isInsideZone && isCorrectKey) {
-                playSound('success'); // เล่นเสียงกดถูก
+                playSound('success');
                 score++;
                 scoreText.textContent = score;
                 targetEl.style.stroke = '#00ff44'; 
@@ -347,9 +419,8 @@
                 setTimeout(() => {
                     startRound();
                 }, 150);
-
             } else {
-                playSound('fail'); // เล่นเสียงพลาด
+                playSound('fail');
                 if (!isInsideZone) {
                     handleFail("พลาด! หยุดตรงสีเทา");
                 } else {
@@ -361,12 +432,11 @@
         function handleFail(reason) {
             isPlaying = false;
             cancelAnimationFrame(animationFrame);
-            
             targetEl.style.stroke = '#ff3b30'; 
             
             setTimeout(() => {
                 endGame(false, reason);
-            }, 500); 
+            }, 500);
         }
 
         function endGame(isWin, message) {
