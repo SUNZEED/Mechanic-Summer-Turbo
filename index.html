@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FiveM Minigame - Hardcore Lag & Warp</title>
+    <title>FiveM Minigame - Select Difficulty</title>
     <style>
         body {
             background-color: #111;
@@ -48,23 +48,36 @@
         .overlay p {
             font-size: 14px;
             color: #aaa;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             line-height: 1.5;
         }
+
+        /* --- ปุ่มเลือกโหมด --- */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 80%;
+        }
         .btn {
-            background-color: #ffaa00;
-            color: #111;
             border: none;
-            padding: 12px 30px;
-            font-size: 18px;
+            padding: 10px 20px;
+            font-size: 16px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
         }
         .btn:hover {
-            background-color: #ffc44d;
             transform: scale(1.05);
+        }
+        .btn-easy { background-color: #00ff44; color: #111; }
+        .btn-normal { background-color: #ffaa00; color: #111; }
+        .btn-hard { background-color: #ff3b30; color: #fff; }
+        .btn-hardcore { 
+            background-color: #9d00ff; 
+            color: #fff; 
+            box-shadow: 0 0 10px #9d00ff;
         }
 
         .status-bar {
@@ -74,8 +87,7 @@
             font-size: 18px;
             font-weight: bold;
         }
-        .status-bar .score { color: #2778ff;
-            font-size: 22px; }
+        .status-bar .score { color: #2778ff; font-size: 22px; }
 
         .circle-wrapper {
             position: relative;
@@ -92,12 +104,12 @@
         .track {
             fill: none;
             stroke: #34363d; 
-            stroke-width: 10; /* ปรับให้เส้นเล็กลง */
+            stroke-width: 10; 
         }
         .target-zone {
             fill: none;
             stroke: #2778ff; 
-            stroke-width: 10; /* ปรับให้เส้นเล็กลง */
+            stroke-width: 10; 
             stroke-linecap: butt;
             transform-origin: 100px 100px; 
         }
@@ -149,8 +161,13 @@
     <div class="game-container">
         <div class="overlay" id="overlay">
             <h2 id="overlay-title">ติดตั้งอุปกรณ์</h2>
-            <p id="overlay-desc">กดให้ตรงขีดสีฟ้า และถูกปุ่ม (W A S D)<br>ต่อเนื่อง 10 ครั้ง ห้ามพลาด!</p>
-            <button class="btn" id="start-btn" onclick="startGame()">เริ่มทำรายการ</button>
+            <p id="overlay-desc">เลือกระดับความยากเพื่อเริ่มทำรายการ</p>
+            <div class="btn-group" id="btn-group">
+                <button class="btn btn-easy" onclick="startGame('easy')">🟢 ง่าย</button>
+                <button class="btn btn-normal" onclick="startGame('normal')">🟡 กลาง</button>
+                <button class="btn btn-hard" onclick="startGame('hard')">🔴 ยาก</button>
+                <button class="btn btn-hardcore" onclick="startGame('hardcore')">🔥 ยากประชด!</button>
+            </div>
         </div>
 
         <div class="status-bar">
@@ -216,20 +233,19 @@
         const timePerRevolution = 1100; 
         const hitBuffer = 8; 
 
-        // --- ตัวแปรสำหรับระบบกระตุก และ วาร์ป ---
-        let willLag = false;
-        let lagTriggerAngle = 0;
-        let lagDuration = 0;
+        // --- ตัวแปรโหมดความยาก ---
+        let currentMode = 'easy';
+        let lagTriggers = [];
+        let currentLagIndex = 0;
         let isLagging = false;
         let lagStartTime = 0;
+        let currentLagDuration = 0;
         let totalLagOffset = 0;
-        let hasLagged = false;
 
         let willWarp = false;
         let warpTriggerAngle = 0;
         let warpAmount = 0;
         let hasWarped = false;
-        // ------------------------------------------
 
         let score = 0;
         let isPlaying = false;
@@ -250,10 +266,10 @@
         const overlay = document.getElementById('overlay');
         const overlayTitle = document.getElementById('overlay-title');
         const overlayDesc = document.getElementById('overlay-desc');
-        const startBtn = document.getElementById('start-btn');
         const alertText = document.getElementById('alert-text');
 
-        function startGame() {
+        function startGame(mode) {
+            currentMode = mode;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             overlay.style.display = 'none';
             score = 0;
@@ -267,14 +283,16 @@
         function startRound() {
             if (score >= totalRounds) {
                 playSound('win');
-                endGame(true, "ติดตั้งสำเร็จ!");
+                endGame(true, "ติดตั้งสำเร็จเรียบร้อย!");
                 return;
             }
 
             currentTargetKey = keys[Math.floor(Math.random() * keys.length)];
             centerKeyEl.textContent = currentTargetKey;
 
-            const targetWidthDegrees = Math.floor(Math.random() * 15) + 30; // ปรับเป้าให้แคบลงนิดนึงเพื่อความท้าทาย
+            // ความกว้างของเป้าหมายขึ้นอยู่กับโหมด
+            let widthBase = currentMode === 'easy' ? 50 : 35;
+            const targetWidthDegrees = Math.floor(Math.random() * 15) + widthBase; 
             const minStartAngle = 140; 
             const maxStartAngle = 360 - targetWidthDegrees - 15;
 
@@ -286,27 +304,47 @@
             targetEl.style.strokeDashoffset = `0`;
             targetEl.style.transform = `rotate(${targetStartAngle}deg)`;
 
-            // --- สุ่มระบบหน่วง (Lag) ---
-            willLag = Math.random() < 0.6; // โอกาสกระตุก 60%
-            if (willLag) {
-                lagTriggerAngle = Math.floor(Math.random() * (targetStartAngle - 60)) + 20;
-                lagDuration = Math.floor(Math.random() * 300) + 150; // กระตุกนานขึ้น 150-450ms
+            // --- จัดการระบบ Lag/Warp ตามโหมด ---
+            lagTriggers = [];
+            willWarp = false;
+            hasWarped = false;
+            let lagCount = 0;
+
+            if (currentMode === 'normal') {
+                if (Math.random() < 0.6) { // โอกาสกระตุก 60%
+                    lagCount = Math.floor(Math.random() * 3) + 1; // สุ่ม 1-3 ครั้ง
+                }
+            } else if (currentMode === 'hard') {
+                lagCount = Math.floor(Math.random() * 4) + 2; // สุ่ม 2-5 ครั้ง
+            } else if (currentMode === 'hardcore') {
+                lagCount = Math.floor(Math.random() * 4) + 3; // สุ่ม 3-6 ครั้งรัวๆ
+                willWarp = Math.random() < 0.6; // โอกาสวาร์ป 60%
             }
-            
-            // --- สุ่มระบบวาร์ป (Warp) ---
-            willWarp = Math.random() < 0.4; // โอกาสวาร์ป 40% (อาจจะเกิดพร้อมกระตุกได้)
+
+            // สร้างจุดกระตุก
+            for (let i = 0; i < lagCount; i++) {
+                let maxAngle = targetStartAngle - 20;
+                let minAngle = 15;
+                if (maxAngle <= minAngle) maxAngle = minAngle + 10;
+                
+                let angle = Math.floor(Math.random() * (maxAngle - minAngle)) + minAngle;
+                let duration = Math.floor(Math.random() * 150) + 50; 
+                if (currentMode === 'hardcore') duration += 120; // ยากประชดหน่วงนานขึ้น
+                lagTriggers.push({angle, duration});
+            }
+            lagTriggers.sort((a, b) => a.angle - b.angle); // เรียงตามลำดับองศา
+
+            // ตั้งค่าวาร์ป (สำหรับโหมดยากประชด)
             if (willWarp) {
                 warpTriggerAngle = Math.floor(Math.random() * (targetStartAngle - 80)) + 40;
-                // คำนวณไม่ให้วาร์ปเลยเส้นชัย
                 const maxWarp = targetStartAngle - warpTriggerAngle - 5;
                 warpAmount = Math.min(Math.floor(Math.random() * 40) + 25, maxWarp); 
-                if (warpAmount < 15) willWarp = false; // ถ้าระยะวาร์ปสั้นไปให้ยกเลิก
+                if (warpAmount < 15) willWarp = false; 
             }
 
             isLagging = false;
+            currentLagIndex = 0;
             totalLagOffset = 0;
-            hasLagged = false;
-            hasWarped = false;
             // -----------------------------
 
             currentAngle = 0;
@@ -325,11 +363,12 @@
 
             // --- จัดการสถานะการหน่วง ---
             if (isLagging) {
-                if (currentTime - lagStartTime >= lagDuration) {
+                if (currentTime - lagStartTime >= currentLagDuration) {
                     isLagging = false;
-                    // ชดเชยเวลาแค่ 70% ทำให้ตอนหายกระตุก เข็มจะ "วาร์ปกระโดด" ไปข้างหน้านิดนึง (Stutter effect)
-                    totalLagOffset += (currentTime - lagStartTime) * 0.7; 
-                    hasLagged = true;
+                    // ถ้ายากประชด ให้ชดเชยเวลาแค่ 70% (เข็มจะกระโดดวาร์ปไปข้างหน้านิดนึง)
+                    let compensation = currentMode === 'hardcore' ? 0.7 : 1.0;
+                    totalLagOffset += (currentTime - lagStartTime) * compensation; 
+                    currentLagIndex++;
                 } else {
                     animationFrame = requestAnimationFrame(update);
                     return; 
@@ -342,23 +381,23 @@
             // --- เช็คการวาร์ปข้าม (Teleport) ---
             if (willWarp && !hasWarped && currentAngle >= warpTriggerAngle) {
                 hasWarped = true;
-                // ลด Offset ลง เพื่อให้เวลาจำลองพุ่งไปข้างหน้าทันที = วาร์ป
                 const warpTimeSkip = (warpAmount / 360) * timePerRevolution;
                 totalLagOffset -= warpTimeSkip; 
-                
-                // คำนวณองศาใหม่ทันทีหลังวาร์ป
                 elapsedTime = currentTime - startTime - totalLagOffset;
                 currentAngle = (elapsedTime / timePerRevolution) * 360;
             }
 
-            // --- เช็คว่าถึงจุดที่ต้องกระตุกหรือยัง ---
-            if (willLag && !hasLagged && !isLagging && currentAngle >= lagTriggerAngle) {
-                isLagging = true;
-                lagStartTime = currentTime;
-                currentAngle = lagTriggerAngle; // ล็อคเข็มไว้
-                pointerEl.style.transform = `rotate(${currentAngle}deg)`;
-                animationFrame = requestAnimationFrame(update);
-                return;
+            // --- เช็คว่าถึงจุดกระตุกจุดต่อไปหรือยัง ---
+            if (currentLagIndex < lagTriggers.length && !isLagging) {
+                if (currentAngle >= lagTriggers[currentLagIndex].angle) {
+                    isLagging = true;
+                    lagStartTime = currentTime;
+                    currentLagDuration = lagTriggers[currentLagIndex].duration;
+                    currentAngle = lagTriggers[currentLagIndex].angle; // ล็อคเข็ม
+                    pointerEl.style.transform = `rotate(${currentAngle}deg)`;
+                    animationFrame = requestAnimationFrame(update);
+                    return;
+                }
             }
             // -------------------------
 
@@ -397,7 +436,6 @@
             const exactClickTime = performance.now();
             let finalTime = exactClickTime - startTime - totalLagOffset;
             
-            // ถ้ากดตอนที่เข็มกำลังหน่วงอยู่พอดี
             if (isLagging) {
                 finalTime -= (exactClickTime - lagStartTime);
             }
@@ -422,7 +460,7 @@
             } else {
                 playSound('fail');
                 if (!isInsideZone) {
-                    handleFail("พลาด! หยุดตรงสีเทา");
+                    handleFail("พลาด! หยุดไม่ตรงเป้า");
                 } else {
                     handleFail(`พลาด! กดผิดปุ่ม (ต้องกด ${currentTargetKey})`);
                 }
@@ -443,8 +481,8 @@
             overlay.style.display = 'flex';
             overlayTitle.innerHTML = isWin ? "🎉 สำเร็จ!" : "❌ ล้มเหลว!";
             overlayTitle.style.color = isWin ? '#00ff44' : '#ff3b30';
-            overlayDesc.textContent = isWin ? "ติดตั้งอุปกรณ์เรียบร้อยแล้ว" : message;
-            startBtn.textContent = isWin ? "เล่นอีกครั้ง" : "ลองใหม่";
+            overlayDesc.textContent = message;
+            // เมนูจะแสดงกลับมาอัตโนมัติเพื่อให้เล่นใหม่ในโหมดเดิมหรือเปลี่ยนโหมดได้
         }
     </script>
 </body>
