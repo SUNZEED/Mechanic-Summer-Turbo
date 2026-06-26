@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FiveM Minigames - Circle & Just Dance</title>
+    <title>FiveM Minigame - Select Difficulty</title>
     <style>
         body {
             background-color: #111;
@@ -23,14 +23,10 @@
             background: rgba(20, 20, 20, 0.95);
             border: 2px solid #222;
             border-radius: 12px;
-            padding: 40px 30px 20px 30px;
-            width: 380px;
-            min-height: 280px;
+            padding: 40px 30px;
+            width: 320px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
         .overlay {
@@ -42,7 +38,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 30;
+            z-index: 20;
         }
         .overlay h2 {
             margin: 0 0 10px;
@@ -54,9 +50,9 @@
             color: #aaa;
             margin-bottom: 20px;
             line-height: 1.5;
-            text-align: center;
         }
 
+        /* --- ปุ่มเลือกโหมด --- */
         .btn-group {
             display: flex;
             flex-direction: column;
@@ -71,27 +67,28 @@
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
-            color: #111;
         }
-        .btn:hover { transform: scale(1.05); }
-        .btn-main { background-color: #2778ff; color: #fff; }
-        .btn-easy { background-color: #00ff44; }
-        .btn-normal { background-color: #ffaa00; }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .btn-easy { background-color: #00ff44; color: #111; }
+        .btn-normal { background-color: #ffaa00; color: #111; }
         .btn-hard { background-color: #ff3b30; color: #fff; }
-        .btn-hardcore { background-color: #9d00ff; color: #fff; box-shadow: 0 0 10px #9d00ff; }
-        .btn-back { background-color: #555; color: #fff; margin-top: 10px; }
+        .btn-hardcore { 
+            background-color: #9d00ff; 
+            color: #fff; 
+            box-shadow: 0 0 10px #9d00ff;
+        }
 
         .status-bar {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             font-size: 18px;
             font-weight: bold;
         }
         .status-bar .score { color: #2778ff; font-size: 22px; }
 
-        /* ==================== เกมวงกลม (Circle Game) ==================== */
-        #circle-game { display: none; }
         .circle-wrapper {
             position: relative;
             width: 200px;
@@ -104,212 +101,72 @@
             height: 100%;
             overflow: visible;
         }
-        .track { fill: none; stroke: #34363d; stroke-width: 10; }
-        .target-zone {
-            fill: none; stroke: #2778ff; stroke-width: 10; 
-            stroke-linecap: butt; transform-origin: 100px 100px; 
+        .track {
+            fill: none;
+            stroke: #34363d; 
+            stroke-width: 10; 
         }
+        .target-zone {
+            fill: none;
+            stroke: #2778ff; 
+            stroke-width: 10; 
+            stroke-linecap: butt;
+            transform-origin: 100px 100px; 
+        }
+        
         .pointer-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            transform-origin: center; will-change: transform;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            transform-origin: center;
+            will-change: transform;
         }
         .pointer {
-            position: absolute; top: 10px; left: 50%;
-            width: 4px; height: 26px; background-color: #ff3b30;
-            transform: translateX(-50%); border-radius: 2px;
+            position: absolute;
+            top: 10px; 
+            left: 50%;
+            width: 4px;
+            height: 26px; 
+            background-color: #ff3b30;
+            transform: translateX(-50%);
+            border-radius: 2px;
         }
+
         .center-key-box {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background-color: #34363d; 
-            width: 48px; height: 48px; border-radius: 10px; 
-            display: flex; justify-content: center; align-items: center;
-            font-size: 26px; font-weight: bold; color: #ececec;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #34363d; 
+            width: 48px;
+            height: 48px;
+            border-radius: 10px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            font-weight: bold;
+            color: #ececec;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* ==================== เกม JUST DANCE ==================== */
-        #dance-game { display: none; width: 100%; }
-        .dance-keys-container {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin: 30px 0;
-            min-height: 45px;
-        }
-        .dance-key {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #2a2c33;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            color: #aaa;
-            border: 2px solid #444;
-            transition: 0.1s;
-        }
-        .dance-key.active {
-            border-color: #2778ff;
-            color: #fff;
-            box-shadow: 0 0 10px #2778ff;
-            transform: scale(1.1);
-        }
-        .dance-key.done {
-            background: #00ff44;
-            color: #111;
-            border-color: #00ff44;
-            box-shadow: 0 0 10px #00ff44;
-            transform: scale(0.9);
-            opacity: 0.5;
-        }
-        .dance-key.opposite {
-            background: #ff7300; /* สีส้มโหมดยาก */
-            color: #111;
-            border-color: #ffaa00;
-            box-shadow: 0 0 10px #ffaa00;
-        }
-
-        .dance-slider-wrapper {
-            position: relative;
-            width: 100%;
-            height: 20px;
-            background: #1a1a1a;
-            border-radius: 10px;
-            border: 2px solid #333;
-            overflow: hidden;
-            opacity: 0.2;
-            transition: 0.3s;
-        }
-        .dance-slider-wrapper.active { opacity: 1; }
-        
-        .dance-target-zone {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border-left: 2px solid #fff;
-            border-right: 2px solid #fff;
-        }
-        .dance-target-center {
-            position: absolute;
-            top: 0;
-            width: 2px;
-            height: 100%;
-            background: #ffaa00;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .dance-cursor {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 8px;
-            height: 100%;
-            background: #00ff44;
-            border-radius: 4px;
-            box-shadow: 0 0 10px #00ff44;
-            transform: translateX(-50%);
-        }
-
-        .dance-instruction {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #aaa;
-            height: 20px;
-        }
-
-        /* เอฟเฟคข้อความ Feedback */
-        .feedback-text {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            font-size: 36px;
-            font-weight: bold;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10;
-            text-transform: uppercase;
-            font-style: italic;
-        }
-        .feedback-anim {
-            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        @keyframes popUp {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            40% { transform: translate(-50%, -60%) scale(1.2); opacity: 1; }
-            100% { transform: translate(-50%, -65%) scale(1); opacity: 0; }
-        }
-        .f-perfect { color: #ffaa00; text-shadow: 0 0 15px #ffaa00, 0 0 5px #fff; }
-        .f-great { color: #00ff44; text-shadow: 0 0 15px #00ff44, 0 0 5px #fff; }
-        .f-good { color: #2778ff; text-shadow: 0 0 15px #2778ff, 0 0 5px #fff; }
-        .f-miss { color: #ff3b30; text-shadow: 0 0 15px #ff3b30, 0 0 5px #fff; }
-
-        /* หลอดปรับเสียง */
-        .settings-bar {
+        .alert-text {
             margin-top: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            font-size: 14px;
-            color: #aaa;
-            background: #1a1a1a;
-            padding: 10px;
-            border-radius: 8px;
+            height: 20px;
+            font-size: 16px;
+            font-weight: bold;
         }
-        input[type=range] { -webkit-appearance: none; width: 120px; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 14px; width: 14px;
-            border-radius: 50%; background: #ffaa00; cursor: pointer; margin-top: -5px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer; background: #34363d; border-radius: 2px;
-        }
-        input[type=range]:focus { outline: none; }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        
-        <div class="overlay" id="menu-main">
-            <h2>เลือกมินิเกม</h2>
-            <div class="btn-group">
-                <button class="btn btn-main" onclick="showSubMenu('circle')">🔧 ติดตั้งอุปกรณ์ (วงกลม)</button>
-                <button class="btn btn-main" style="background:#ff007f;" onclick="showSubMenu('dance')">💃 JUST DANCE (เต้น)</button>
-            </div>
-        </div>
-
-        <div class="overlay" id="menu-circle" style="display:none;">
-            <h2>ติดตั้งอุปกรณ์</h2>
-            <p>กดให้ตรงขีดสีฟ้า และถูกปุ่ม (W A S D)</p>
-            <div class="btn-group">
-                <button class="btn btn-easy" onclick="initGame('circle', 'easy')">🟢 ง่าย</button>
-                <button class="btn btn-normal" onclick="initGame('circle', 'normal')">🟡 กลาง</button>
-                <button class="btn btn-hard" onclick="initGame('circle', 'hard')">🔴 ยาก</button>
-                <button class="btn btn-hardcore" onclick="initGame('circle', 'hardcore')">🔥 ยากประชด!</button>
-                <button class="btn btn-back" onclick="showMainMenu()">กลับ</button>
-            </div>
-        </div>
-
-        <div class="overlay" id="menu-dance" style="display:none;">
-            <h2>JUST DANCE</h2>
-            <p>กดลูกศรให้ถูกต้อง จากนั้นเล็งหลอดให้ตรงเป้า<br><span style="color:#ffaa00;">(โหมดยาก: ลูกศรสีส้มให้กดปุ่มตรงข้าม)</span></p>
-            <div class="btn-group">
-                <button class="btn btn-easy" onclick="initGame('dance', 'easy')">🟢 ง่าย (ตามปกติ)</button>
-                <button class="btn btn-hard" onclick="initGame('dance', 'hard')">🔴 ยาก (มีลูกศรส้มสลับทิศ)</button>
-                <button class="btn btn-back" onclick="showMainMenu()">กลับ</button>
-            </div>
-        </div>
-
-        <div class="overlay" id="menu-result" style="display:none;">
-            <h2 id="result-title">ผลลัพธ์</h2>
-            <p id="result-desc">ข้อความ</p>
-            <div class="btn-group">
-                <button class="btn btn-normal" id="btn-restart" onclick="restartCurrentGame()">เล่นอีกครั้ง</button>
-                <button class="btn btn-back" onclick="showMainMenu()">กลับเมนูหลัก</button>
+        <div class="overlay" id="overlay">
+            <h2 id="overlay-title">ติดตั้งอุปกรณ์</h2>
+            <p id="overlay-desc">เลือกระดับความยากเพื่อเริ่มทำรายการ</p>
+            <div class="btn-group" id="btn-group">
+                <button class="btn btn-easy" onclick="startGame('easy')">🟢 ง่าย</button>
+                <button class="btn btn-normal" onclick="startGame('normal')">🟡 กลาง</button>
+                <button class="btn btn-hard" onclick="startGame('hard')">🔴 ยาก</button>
+                <button class="btn btn-hardcore" onclick="startGame('hardcore')">🔥 ยากประชด!</button>
             </div>
         </div>
 
@@ -318,516 +175,315 @@
             <span class="score"><span id="score-text">0</span> / 10</span>
         </div>
         
-        <div id="circle-game">
-            <div class="circle-wrapper">
-                <svg viewBox="0 0 200 200">
-                    <circle class="track" cx="100" cy="100" r="80"></circle>
-                    <circle class="target-zone" id="circle-target" cx="100" cy="100" r="80"></circle>
-                </svg>
-                <div class="pointer-container" id="circle-pointer">
-                    <div class="pointer"></div>
-                </div>
-                <div class="center-key-box" id="circle-center-key">W</div>
+        <div class="circle-wrapper">
+            <svg viewBox="0 0 200 200">
+                <circle class="track" cx="100" cy="100" r="80"></circle>
+                <circle class="target-zone" id="target" cx="100" cy="100" r="80"></circle>
+            </svg>
+            <div class="pointer-container" id="pointer">
+                <div class="pointer"></div>
             </div>
+            <div class="center-key-box" id="center-key">W</div>
         </div>
 
-        <div id="dance-game">
-            <div class="dance-keys-container" id="dance-keys">
-                </div>
-            
-            <div class="dance-slider-wrapper" id="dance-slider-bg">
-                <div class="dance-target-zone" id="dance-target-zone">
-                    <div class="dance-target-center"></div>
-                </div>
-                <div class="dance-cursor" id="dance-cursor"></div>
-            </div>
-            <div class="dance-instruction" id="dance-instruction">กดตามลูกศรให้ครบ!</div>
-        </div>
-
-        <div id="feedback-popup" class="feedback-text">PERFECT</div>
-
-        <div class="settings-bar">
-            <span>🔊 เสียง:</span>
-            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5">
-        </div>
+        <div class="alert-text" id="alert-text"></div>
     </div>
 
     <script>
-        // ==================== ระบบเสียง ====================
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const masterGainNode = audioCtx.createGain();
-        masterGainNode.connect(audioCtx.destination);
-        masterGainNode.gain.value = 0.5; 
-
-        document.getElementById('volume-slider').addEventListener('input', (e) => {
-            masterGainNode.gain.value = e.target.value;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        });
 
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(masterGainNode);
-
-            if (type === 'success') { // กดปุ่มเต้นถูก
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'perfect') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
-                osc.frequency.setValueAtTime(1108.73, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-            } else if (type === 'fail' || type === 'miss') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            if (type === 'success') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15);
+            } else if (type === 'fail') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
             } else if (type === 'win') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
             }
         }
 
-        function showFeedback(text, typeClass) {
-            const fb = document.getElementById('feedback-popup');
-            fb.textContent = text;
-            fb.className = 'feedback-text ' + typeClass;
-            
-            // รีเซ็ตอนิเมชั่น
-            fb.classList.remove('feedback-anim');
-            void fb.offsetWidth; 
-            fb.classList.add('feedback-anim');
-        }
+        // --- ระบบเกม ---
+        const keys = ['W', 'A', 'S', 'D'];
+        const totalRounds = 10; 
+        const timePerRevolution = 1100; 
+        const hitBuffer = 8; 
 
-        // ==================== ระบบจัดการเมนูและสถานะ ====================
-        let activeGameType = null; 
-        let activeDifficulty = null;
+        // --- ตัวแปรโหมดความยาก ---
+        let currentMode = 'easy';
+        let lagTriggers = [];
+        let currentLagIndex = 0;
+        let isLagging = false;
+        let lagStartTime = 0;
+        let currentLagDuration = 0;
+        let totalLagOffset = 0;
+
+        let willWarp = false;
+        let warpTriggerAngle = 0;
+        let warpAmount = 0;
+        let hasWarped = false;
+
         let score = 0;
-        const totalRounds = 10;
         let isPlaying = false;
         let animationFrame;
+        let startTime = 0;
+        let currentAngle = 0;
+        let targetStartAngle = 0;
+        let targetEndAngle = 0;
+        let currentTargetKey = '';
 
-        // การแปลงปุ่มเป็นทิศทาง (รองรับ WASD, ลูกศร และแป้นไทย)
-        const keyMap = {
-            'W': 'UP', 'ARROWUP': 'UP', 'ไ': 'UP', '"': 'UP',
-            'S': 'DOWN', 'ARROWDOWN': 'DOWN', 'ห': 'DOWN', 'ฆ': 'DOWN',
-            'A': 'LEFT', 'ARROWLEFT': 'LEFT', 'ฟ': 'LEFT', 'ฤ': 'LEFT',
-            'D': 'RIGHT', 'ARROWRIGHT': 'RIGHT', 'ก': 'RIGHT', 'ฏ': 'RIGHT',
-            ' ': 'SPACE', 'SPACEBAR': 'SPACE'
-        };
-        const oppositeMap = { 'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT' };
-        const arrowSymbols = { 'UP': '⬆', 'DOWN': '⬇', 'LEFT': '⬅', 'RIGHT': '➡' };
+        const radius = 80;
+        const circumference = 2 * Math.PI * radius; 
 
-        function hideAllMenus() {
-            document.getElementById('menu-main').style.display = 'none';
-            document.getElementById('menu-circle').style.display = 'none';
-            document.getElementById('menu-dance').style.display = 'none';
-            document.getElementById('menu-result').style.display = 'none';
-        }
+        const targetEl = document.getElementById('target');
+        const pointerEl = document.getElementById('pointer');
+        const centerKeyEl = document.getElementById('center-key');
+        const scoreText = document.getElementById('score-text');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayDesc = document.getElementById('overlay-desc');
+        const alertText = document.getElementById('alert-text');
 
-        function showMainMenu() {
-            isPlaying = false;
-            cancelAnimationFrame(animationFrame);
-            hideAllMenus();
-            document.getElementById('circle-game').style.display = 'none';
-            document.getElementById('dance-game').style.display = 'none';
-            document.getElementById('menu-main').style.display = 'flex';
-        }
-
-        function showSubMenu(gameType) {
-            hideAllMenus();
-            if (gameType === 'circle') document.getElementById('menu-circle').style.display = 'flex';
-            if (gameType === 'dance') document.getElementById('menu-dance').style.display = 'flex';
-        }
-
-        function endGame(isWin, message) {
-            isPlaying = false;
-            cancelAnimationFrame(animationFrame);
-            hideAllMenus();
-            
-            const resultMenu = document.getElementById('menu-result');
-            const title = document.getElementById('result-title');
-            
-            resultMenu.style.display = 'flex';
-            title.innerHTML = isWin ? "🎉 สำเร็จ!" : "❌ ล้มเหลว!";
-            title.style.color = isWin ? '#00ff44' : '#ff3b30';
-            document.getElementById('result-desc').textContent = message;
-        }
-
-        function restartCurrentGame() {
-            initGame(activeGameType, activeDifficulty);
-        }
-
-        function initGame(gameType, difficulty) {
+        function startGame(mode) {
+            currentMode = mode;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            activeGameType = gameType;
-            activeDifficulty = difficulty;
+            overlay.style.display = 'none';
             score = 0;
-            document.getElementById('score-text').textContent = score;
+            scoreText.textContent = score;
+            alertText.textContent = '';
+            targetEl.style.stroke = '#2778ff'; 
             
-            hideAllMenus();
-            document.getElementById('circle-game').style.display = (gameType === 'circle') ? 'block' : 'none';
-            document.getElementById('dance-game').style.display = (gameType === 'dance') ? 'block' : 'none';
-            
-            if (gameType === 'circle') startCircleRound();
-            if (gameType === 'dance') startDanceRound();
+            startRound();
         }
 
-        // ==================== โค้ดส่วนเกม JUST DANCE ====================
-        let danceSequence = [];
-        let danceCurrentIndex = 0;
-        let danceState = 'typing'; // 'typing', 'slider'
-        let sliderStart = 0;
-        const sliderDuration = 1300; // ความเร็วหลอดวิ่ง (ms)
-        let sliderTargetPercent = 0;
-
-        function startDanceRound() {
+        function startRound() {
             if (score >= totalRounds) {
                 playSound('win');
-                endGame(true, "เต้นจบเพลงเรียบร้อย!");
+                endGame(true, "ติดตั้งสำเร็จเรียบร้อย!");
                 return;
             }
 
-            danceState = 'typing';
-            danceCurrentIndex = 0;
-            danceSequence = [];
-            
-            const keysContainer = document.getElementById('dance-keys');
-            keysContainer.innerHTML = '';
-            document.getElementById('dance-slider-bg').classList.remove('active');
-            document.getElementById('dance-instruction').textContent = "กดตามลูกศรให้ครบ!";
-            document.getElementById('dance-cursor').style.left = '0%';
+            currentTargetKey = keys[Math.floor(Math.random() * keys.length)];
+            centerKeyEl.textContent = currentTargetKey;
 
-            // สุ่มความยาว 5-8 ปุ่ม
-            const seqLength = Math.floor(Math.random() * 4) + 5; 
-            const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
-
-            for (let i = 0; i < seqLength; i++) {
-                const dir = directions[Math.floor(Math.random() * directions.length)];
-                let isOpposite = false;
-                
-                // โหมดยาก: โอกาส 30% ที่จะเป็นลูกศรสีส้ม
-                if (activeDifficulty === 'hard' && Math.random() < 0.3) {
-                    isOpposite = true;
-                }
-
-                const expectedKey = isOpposite ? oppositeMap[dir] : dir;
-                danceSequence.push({ display: dir, expected: expectedKey, isOpposite });
-
-                const keyDiv = document.createElement('div');
-                keyDiv.className = 'dance-key' + (isOpposite ? ' opposite' : '');
-                keyDiv.textContent = arrowSymbols[dir];
-                if (i === 0) keyDiv.classList.add('active');
-                keysContainer.appendChild(keyDiv);
-            }
-            
-            isPlaying = true;
-        }
-
-        function activateDanceSlider() {
-            danceState = 'slider';
-            document.getElementById('dance-slider-bg').classList.add('active');
-            document.getElementById('dance-instruction').innerHTML = "กด <strong style='color:#ffaa00'>Spacebar</strong> ให้ตรงขีดขาว!";
-            
-            // สุ่มเป้าหมายสีขาวให้อยู่ช่วง 70% - 85%
-            sliderTargetPercent = Math.floor(Math.random() * 15) + 70;
-            const targetZone = document.getElementById('dance-target-zone');
-            targetZone.style.left = sliderTargetPercent + '%';
-            targetZone.style.width = '8%'; // กว้าง 8%
-
-            sliderStart = performance.now();
-            cancelAnimationFrame(animationFrame);
-            animationFrame = requestAnimationFrame(updateDanceSlider);
-        }
-
-        function updateDanceSlider(currentTime) {
-            if (!isPlaying || danceState !== 'slider') return;
-
-            let elapsed = currentTime - sliderStart;
-            let percent = (elapsed / sliderDuration) * 100;
-
-            if (percent > 100) {
-                // เลยขอบ = MISS
-                playSound('miss');
-                showFeedback("MISS", "f-miss");
-                document.getElementById('dance-cursor').style.left = '100%';
-                setTimeout(() => endGame(false, "พลาด! กด Spacebar ไม่ทัน"), 500);
-                return;
-            }
-
-            document.getElementById('dance-cursor').style.left = percent + '%';
-            animationFrame = requestAnimationFrame(updateDanceSlider);
-        }
-
-        function handleDanceSpacebar(percent) {
-            isPlaying = false;
-            cancelAnimationFrame(animationFrame);
-            
-            // คำนวณจุดกึ่งกลางของเป้าหมาย (target starts at X, width 8%, center is X+4%)
-            const centerTarget = sliderTargetPercent + 4;
-            const diff = Math.abs(percent - centerTarget);
-
-            let feedback = '';
-            let fClass = '';
-
-            if (diff <= 3) {
-                feedback = 'PERFECT'; fClass = 'f-perfect';
-                playSound('perfect');
-            } else if (diff <= 7) {
-                feedback = 'GREAT'; fClass = 'f-great';
-                playSound('success');
-            } else if (diff <= 12) {
-                feedback = 'GOOD'; fClass = 'f-good';
-                playSound('success');
-            } else {
-                feedback = 'MISS'; fClass = 'f-miss';
-                playSound('miss');
-                showFeedback(feedback, fClass);
-                setTimeout(() => endGame(false, "พลาด! เล็งไม่ตรงเป้า"), 500);
-                return;
-            }
-
-            showFeedback(feedback, fClass);
-            score++;
-            document.getElementById('score-text').textContent = score;
-
-            setTimeout(() => {
-                startDanceRound();
-            }, 800);
-        }
-
-        // ==================== โค้ดส่วนเกมวงกลม (Circle) เดิม ====================
-        let circleData = {
-            startTime: 0, timePerRev: 1100, hitBuffer: 8,
-            targetStart: 0, targetEnd: 0, targetKey: '', currentAngle: 0,
-            lagTriggers: [], currentLagIndex: 0, isLagging: false, lagStart: 0,
-            lagDuration: 0, lagOffset: 0,
-            willWarp: false, warpTrigger: 0, warpAmount: 0, hasWarped: false
-        };
-
-        function startCircleRound() {
-            if (score >= totalRounds) {
-                playSound('win'); endGame(true, "ติดตั้งสำเร็จเรียบร้อย!"); return;
-            }
-            
-            const targetEl = document.getElementById('circle-target');
-            const centerKeyEl = document.getElementById('circle-center-key');
-            
-            const circleKeys = ['W', 'A', 'S', 'D'];
-            circleData.targetKey = circleKeys[Math.floor(Math.random() * circleKeys.length)];
-            centerKeyEl.textContent = circleData.targetKey;
-
-            let widthBase = (activeDifficulty === 'easy' || activeDifficulty === 'normal') ? 45 : 30;
+            // ความกว้างของเป้าหมายขึ้นอยู่กับโหมด
+            let widthBase = currentMode === 'easy' ? 50 : 35;
             const targetWidthDegrees = Math.floor(Math.random() * 15) + widthBase; 
             const minStartAngle = 140; 
             const maxStartAngle = 360 - targetWidthDegrees - 15;
 
-            circleData.targetStart = Math.floor(Math.random() * (maxStartAngle - minStartAngle)) + minStartAngle;
-            circleData.targetEnd = circleData.targetStart + targetWidthDegrees;
+            targetStartAngle = Math.floor(Math.random() * (maxStartAngle - minStartAngle)) + minStartAngle;
+            targetEndAngle = targetStartAngle + targetWidthDegrees;
 
-            const circumference = 2 * Math.PI * 80; 
             const targetLength = (targetWidthDegrees / 360) * circumference;
             targetEl.style.strokeDasharray = `${targetLength} ${circumference}`;
             targetEl.style.strokeDashoffset = `0`;
-            targetEl.style.transform = `rotate(${circleData.targetStart}deg)`;
-            targetEl.style.stroke = '#2778ff';
+            targetEl.style.transform = `rotate(${targetStartAngle}deg)`;
 
-            // ระบบความยากแบบเดิม
-            circleData.lagTriggers = [];
-            circleData.willWarp = false;
-            circleData.hasWarped = false;
+            // --- จัดการระบบ Lag/Warp ตามโหมด ---
+            lagTriggers = [];
+            willWarp = false;
+            hasWarped = false;
             let lagCount = 0;
 
-            if (activeDifficulty === 'normal' && Math.random() < 0.6) lagCount = Math.floor(Math.random() * 3) + 1; 
-            else if (activeDifficulty === 'hard') lagCount = Math.floor(Math.random() * 4) + 2; 
-            else if (activeDifficulty === 'hardcore') {
-                lagCount = Math.floor(Math.random() * 4) + 3; 
-                circleData.willWarp = Math.random() < 0.6; 
+            if (currentMode === 'normal') {
+                if (Math.random() < 0.6) { // โอกาสกระตุก 60%
+                    lagCount = Math.floor(Math.random() * 3) + 1; // สุ่ม 1-3 ครั้ง
+                }
+            } else if (currentMode === 'hard') {
+                lagCount = Math.floor(Math.random() * 4) + 2; // สุ่ม 2-5 ครั้ง
+            } else if (currentMode === 'hardcore') {
+                lagCount = Math.floor(Math.random() * 4) + 3; // สุ่ม 3-6 ครั้งรัวๆ
+                willWarp = Math.random() < 0.6; // โอกาสวาร์ป 60%
             }
 
+            // สร้างจุดกระตุก
             for (let i = 0; i < lagCount; i++) {
-                let maxAngle = circleData.targetStart - 20;
+                let maxAngle = targetStartAngle - 20;
                 let minAngle = 15;
                 if (maxAngle <= minAngle) maxAngle = minAngle + 10;
+                
                 let angle = Math.floor(Math.random() * (maxAngle - minAngle)) + minAngle;
                 let duration = Math.floor(Math.random() * 150) + 50; 
-                if (activeDifficulty === 'hardcore') duration += 120; 
-                circleData.lagTriggers.push({angle, duration});
+                if (currentMode === 'hardcore') duration += 120; // ยากประชดหน่วงนานขึ้น
+                lagTriggers.push({angle, duration});
             }
-            circleData.lagTriggers.sort((a, b) => a.angle - b.angle); 
+            lagTriggers.sort((a, b) => a.angle - b.angle); // เรียงตามลำดับองศา
 
-            if (circleData.willWarp) {
-                circleData.warpTrigger = Math.floor(Math.random() * (circleData.targetStart - 80)) + 40;
-                const maxWarp = circleData.targetStart - circleData.warpTrigger - 5;
-                circleData.warpAmount = Math.min(Math.floor(Math.random() * 40) + 25, maxWarp); 
-                if (circleData.warpAmount < 15) circleData.willWarp = false; 
+            // ตั้งค่าวาร์ป (สำหรับโหมดยากประชด)
+            if (willWarp) {
+                warpTriggerAngle = Math.floor(Math.random() * (targetStartAngle - 80)) + 40;
+                const maxWarp = targetStartAngle - warpTriggerAngle - 5;
+                warpAmount = Math.min(Math.floor(Math.random() * 40) + 25, maxWarp); 
+                if (warpAmount < 15) willWarp = false; 
             }
 
-            circleData.isLagging = false; circleData.currentLagIndex = 0; circleData.lagOffset = 0;
-            circleData.currentAngle = 0;
-            document.getElementById('circle-pointer').style.transform = `rotate(0deg)`;
+            isLagging = false;
+            currentLagIndex = 0;
+            totalLagOffset = 0;
+            // -----------------------------
+
+            currentAngle = 0;
+            pointerEl.style.transform = `rotate(0deg)`;
+            targetEl.style.stroke = '#2778ff';
             
             isPlaying = true;
-            circleData.startTime = performance.now();
+            startTime = performance.now();
+            
             cancelAnimationFrame(animationFrame);
-            animationFrame = requestAnimationFrame(updateCircleGame);
+            animationFrame = requestAnimationFrame(update);
         }
 
-        function updateCircleGame(currentTime) {
+        function update(currentTime) {
             if (!isPlaying) return;
 
-            if (circleData.isLagging) {
-                if (currentTime - circleData.lagStart >= circleData.lagDuration) {
-                    circleData.isLagging = false;
-                    let comp = activeDifficulty === 'hardcore' ? 0.7 : 1.0;
-                    circleData.lagOffset += (currentTime - circleData.lagStart) * comp; 
-                    circleData.currentLagIndex++;
+            // --- จัดการสถานะการหน่วง ---
+            if (isLagging) {
+                if (currentTime - lagStartTime >= currentLagDuration) {
+                    isLagging = false;
+                    // ถ้ายากประชด ให้ชดเชยเวลาแค่ 70% (เข็มจะกระโดดวาร์ปไปข้างหน้านิดนึง)
+                    let compensation = currentMode === 'hardcore' ? 0.7 : 1.0;
+                    totalLagOffset += (currentTime - lagStartTime) * compensation; 
+                    currentLagIndex++;
                 } else {
-                    animationFrame = requestAnimationFrame(updateCircleGame);
+                    animationFrame = requestAnimationFrame(update);
                     return; 
                 }
             }
 
-            let elapsedTime = currentTime - circleData.startTime - circleData.lagOffset;
-            circleData.currentAngle = (elapsedTime / circleData.timePerRev) * 360;
+            let elapsedTime = currentTime - startTime - totalLagOffset;
+            currentAngle = (elapsedTime / timePerRevolution) * 360;
 
-            if (circleData.willWarp && !circleData.hasWarped && circleData.currentAngle >= circleData.warpTrigger) {
-                circleData.hasWarped = true;
-                const warpSkip = (circleData.warpAmount / 360) * circleData.timePerRev;
-                circleData.lagOffset -= warpSkip; 
-                elapsedTime = currentTime - circleData.startTime - circleData.lagOffset;
-                circleData.currentAngle = (elapsedTime / circleData.timePerRev) * 360;
+            // --- เช็คการวาร์ปข้าม (Teleport) ---
+            if (willWarp && !hasWarped && currentAngle >= warpTriggerAngle) {
+                hasWarped = true;
+                const warpTimeSkip = (warpAmount / 360) * timePerRevolution;
+                totalLagOffset -= warpTimeSkip; 
+                elapsedTime = currentTime - startTime - totalLagOffset;
+                currentAngle = (elapsedTime / timePerRevolution) * 360;
             }
 
-            if (circleData.currentLagIndex < circleData.lagTriggers.length && !circleData.isLagging) {
-                if (circleData.currentAngle >= circleData.lagTriggers[circleData.currentLagIndex].angle) {
-                    circleData.isLagging = true;
-                    circleData.lagStart = currentTime;
-                    circleData.lagDuration = circleData.lagTriggers[circleData.currentLagIndex].duration;
-                    circleData.currentAngle = circleData.lagTriggers[circleData.currentLagIndex].angle; 
-                    document.getElementById('circle-pointer').style.transform = `rotate(${circleData.currentAngle}deg)`;
-                    animationFrame = requestAnimationFrame(updateCircleGame);
+            // --- เช็คว่าถึงจุดกระตุกจุดต่อไปหรือยัง ---
+            if (currentLagIndex < lagTriggers.length && !isLagging) {
+                if (currentAngle >= lagTriggers[currentLagIndex].angle) {
+                    isLagging = true;
+                    lagStartTime = currentTime;
+                    currentLagDuration = lagTriggers[currentLagIndex].duration;
+                    currentAngle = lagTriggers[currentLagIndex].angle; // ล็อคเข็ม
+                    pointerEl.style.transform = `rotate(${currentAngle}deg)`;
+                    animationFrame = requestAnimationFrame(update);
                     return;
                 }
             }
+            // -------------------------
 
-            if (circleData.currentAngle >= 360) {
-                circleData.currentAngle = 360;
-                document.getElementById('circle-pointer').style.transform = `rotate(360deg)`;
+            if (currentAngle >= 360) {
+                currentAngle = 360;
+                pointerEl.style.transform = `rotate(360deg)`;
                 playSound('fail'); 
-                setTimeout(() => endGame(false, "พลาด! หมดเวลา"), 200);
+                handleFail("พลาด! หมดเวลา");
                 return;
             }
 
-            document.getElementById('circle-pointer').style.transform = `rotate(${circleData.currentAngle}deg)`;
-            animationFrame = requestAnimationFrame(updateCircleGame);
+            pointerEl.style.transform = `rotate(${currentAngle}deg)`;
+            animationFrame = requestAnimationFrame(update);
         }
 
-        // ==================== ระบบตรวจจับคีย์บอร์ดรวม ====================
         document.addEventListener('keydown', (e) => {
             if (!isPlaying) return;
-
-            let rawKey = e.key.toUpperCase();
-            if (rawKey === ' ') rawKey = 'SPACE';
             
-            const mappedInput = keyMap[rawKey];
-            if (!mappedInput) return; // ถ้ากดปุ่มอื่นที่ไม่เกี่ยว ไม่ต้องทำอะไร
+            const thaiToEngMap = {
+                'ไ': 'W', 'ฟ': 'A', 'ห': 'S', 'ก': 'D',
+                '"': 'W', 'ฤ': 'A', 'ฆ': 'S', 'ฏ': 'D' 
+            };
 
-            if (activeGameType === 'dance') {
-                e.preventDefault(); // กันหน้าเว็บเลื่อนเวลากด spacebar/ลูกศร
-                
-                if (danceState === 'typing') {
-                    if (mappedInput === 'SPACE') return; // กำลังพิมลูกศร ห้ามกด space
-                    
-                    const currentStep = danceSequence[danceCurrentIndex];
-                    if (mappedInput === currentStep.expected) {
-                        // กดถูก
-                        playSound('success');
-                        const keyDivs = document.getElementById('dance-keys').children;
-                        keyDivs[danceCurrentIndex].classList.remove('active');
-                        keyDivs[danceCurrentIndex].classList.add('done');
-                        
-                        danceCurrentIndex++;
-                        
-                        if (danceCurrentIndex < danceSequence.length) {
-                            keyDivs[danceCurrentIndex].classList.add('active');
-                        } else {
-                            // พิมพ์ครบแล้ว ไปหลอดวิ่ง
-                            activateDanceSlider();
-                        }
-                    } else {
-                        // กดผิดร่วงเลย
-                        playSound('fail');
-                        showFeedback("MISS", "f-miss");
-                        const keyDivs = document.getElementById('dance-keys').children;
-                        keyDivs[danceCurrentIndex].style.backgroundColor = '#ff3b30';
-                        setTimeout(() => endGame(false, "พลาด! กดผิดปุ่ม"), 500);
-                    }
-                } else if (danceState === 'slider') {
-                    if (mappedInput === 'SPACE') {
-                        // คำนวณเปอเซนต์ ณ ตอนที่กด
-                        const elapsed = performance.now() - sliderStart;
-                        let percent = (elapsed / sliderDuration) * 100;
-                        handleDanceSpacebar(percent);
-                    }
-                }
-            } 
-            else if (activeGameType === 'circle') {
-                // โลจิกปุ่มของวงกลมรับแค่ WASD (แปลงมาจาก mapping แล้วดึงอักษรแรกกลับ)
-                const allowedCircleKeys = ['W', 'A', 'S', 'D'];
-                let circlePressed = rawKey;
-                
-                // แปลงแป้นไทยกลับเป็นอังกฤษถ้าจำเป็น
-                const thaiToEng = {'ไ':'W', 'ฟ':'A', 'ห':'S', 'ก':'D', '"':'W', 'ฤ':'A', 'ฆ':'S', 'ฏ':'D'};
-                if (thaiToEng[rawKey]) circlePressed = thaiToEng[rawKey];
-                
-                if (!allowedCircleKeys.includes(circlePressed)) return;
+            let pressedKey = e.key;
+            if (thaiToEngMap[pressedKey]) {
+                pressedKey = thaiToEngMap[pressedKey];
+            } else {
+                pressedKey = pressedKey.toUpperCase();
+            }
 
-                isPlaying = false;
-                cancelAnimationFrame(animationFrame);
+            if (!keys.includes(pressedKey)) return;
 
-                let finalTime = performance.now() - circleData.startTime - circleData.lagOffset;
-                if (circleData.isLagging) finalTime -= (performance.now() - circleData.lagStart);
+            isPlaying = false;
+            cancelAnimationFrame(animationFrame);
 
-                circleData.currentAngle = (finalTime / circleData.timePerRev) * 360;
-                if (circleData.currentAngle > 360) circleData.currentAngle = 360;
+            const exactClickTime = performance.now();
+            let finalTime = exactClickTime - startTime - totalLagOffset;
+            
+            if (isLagging) {
+                finalTime -= (exactClickTime - lagStartTime);
+            }
 
-                const pointerEl = document.getElementById('circle-pointer');
-                pointerEl.style.transform = `rotate(${circleData.currentAngle}deg)`;
+            currentAngle = (finalTime / timePerRevolution) * 360;
+            if (currentAngle > 360) currentAngle = 360;
 
-                const isInside = circleData.currentAngle >= (circleData.targetStart - circleData.hitBuffer) && 
-                                 circleData.currentAngle <= (circleData.targetEnd + circleData.hitBuffer);
-                const isCorrectKey = circlePressed === circleData.targetKey;
+            pointerEl.style.transform = `rotate(${currentAngle}deg)`;
 
-                if (isInside && isCorrectKey) {
-                    playSound('success');
-                    score++;
-                    document.getElementById('score-text').textContent = score;
-                    document.getElementById('circle-target').style.stroke = '#00ff44'; 
-                    setTimeout(() => startCircleRound(), 150);
+            const isInsideZone = currentAngle >= (targetStartAngle - hitBuffer) && currentAngle <= (targetEndAngle + hitBuffer);
+            const isCorrectKey = pressedKey === currentTargetKey;
+
+            if (isInsideZone && isCorrectKey) {
+                playSound('success');
+                score++;
+                scoreText.textContent = score;
+                targetEl.style.stroke = '#00ff44'; 
+
+                setTimeout(() => {
+                    startRound();
+                }, 150);
+            } else {
+                playSound('fail');
+                if (!isInsideZone) {
+                    handleFail("พลาด! หยุดไม่ตรงเป้า");
                 } else {
-                    playSound('fail');
-                    document.getElementById('circle-target').style.stroke = '#ff3b30'; 
-                    let msg = !isInside ? "พลาด! หยุดไม่ตรงเป้า" : `พลาด! กดผิดปุ่ม (ต้องกด ${circleData.targetKey})`;
-                    setTimeout(() => endGame(false, msg), 500);
+                    handleFail(`พลาด! กดผิดปุ่ม (ต้องกด ${currentTargetKey})`);
                 }
             }
         });
+
+        function handleFail(reason) {
+            isPlaying = false;
+            cancelAnimationFrame(animationFrame);
+            targetEl.style.stroke = '#ff3b30'; 
+            
+            setTimeout(() => {
+                endGame(false, reason);
+            }, 500);
+        }
+
+        function endGame(isWin, message) {
+            overlay.style.display = 'flex';
+            overlayTitle.innerHTML = isWin ? "🎉 สำเร็จ!" : "❌ ล้มเหลว!";
+            overlayTitle.style.color = isWin ? '#00ff44' : '#ff3b30';
+            overlayDesc.textContent = message;
+            // เมนูจะแสดงกลับมาอัตโนมัติเพื่อให้เล่นใหม่ในโหมดเดิมหรือเปลี่ยนโหมดได้
+        }
     </script>
 </body>
 </html>
